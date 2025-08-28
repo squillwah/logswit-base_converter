@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 
     //command flags
     bool verbose = false;
-   
+
     int argument = 1;
     if (std::string(argv[1]) == "-v") {
         verbose = true;

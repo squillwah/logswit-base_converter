@@ -2,76 +2,92 @@
 #include <string>
 #include <iostream>
 
-int interpretCharDigit(char digit) {
-    static const int ASCII_ALPHA_OFFSET = 55;
-    static const int ASCII_NUMERIC_OFFSET = 48;
-
-    int integerized = 0;
+// HELPER FUNCTIONS:
+// ------------------
+// interpretCharDigit(char digit)
+//  Takes character digit, returns integer representation
+// ------------------
+// interpretDigitChar(int digit)
+//  Takes integer digit, returns char representation (0-Z)
+// ------------------
+// toTen(const string& num, int base)
+//  Takes string of number in a given base, returns string of num in base 10
+// ------------------
+// fromTen(const string& num, int base)
+//  Takes string of number in base 10, returns string of num in given base
+// ------------------
+namespace {
+    static int interpretCharDigit(char digit) {
+        static const int ASCII_ALPHA_OFFSET = 55;
+        static const int ASCII_NUMERIC_OFFSET = 48;
     
-    if (digit > 47 && digit < 58)
-        integerized = digit - ASCII_NUMERIC_OFFSET;
-    else if (digit > 64 && digit < 91)
-        integerized = digit - ASCII_ALPHA_OFFSET;
-    else 
-        std::cout << "Err: can't interpret char as digit, setting '" << digit << "' to zero." << std::endl;
-
-    return integerized;
-}
-
-char interpretDigitChar(int digit) {
-    static const int ASCII_ALPHA_OFFSET = 55;
-    static const int ASCII_NUMERIC_OFFSET = 48;
-
-    char characterized = '-';
-
-    if (digit >= 0 && digit < 10)
-        characterized = digit + ASCII_NUMERIC_OFFSET;
-    else if (digit >= 10 && digit < 36)
-        characterized = digit + ASCII_ALPHA_OFFSET;
-    else
-        std::cout << "Err: can't find suitable alphanumeric for " << digit << ", setting to '-'" << std::endl;
-
-    return characterized;
-}
-
-std::string fromTen(const std::string& num, int base, bool verbose = false) {
-    if (verbose) std::cout << "Executing b10 -> b" << base << " conversion on " << num << std::endl;
+        int integerized = 0;
+        
+        if (digit > 47 && digit < 58)
+            integerized = digit - ASCII_NUMERIC_OFFSET;
+        else if (digit > 64 && digit < 91)
+            integerized = digit - ASCII_ALPHA_OFFSET;
+        else 
+            std::cout << "Err: can't interpret char as digit, setting '" << digit << "' to zero." << std::endl;
     
-    bool neg = (num[0] == '-');
-    int value = abs(stoi(num));
-
-    std::string convertedString = "";
-    while (value > 0) {
-        convertedString.insert(0, 1, interpretDigitChar(value%base));
-        value /= base;
-        if (verbose) std::cout << "V: " << value << "\tR: " << convertedString << std::endl;
+        return integerized;
     }
-
-    if (neg) convertedString.insert(0, 1, '-');
-
-    return convertedString;
-}
-
-std::string toTen(const std::string& num, int base, bool verbose = false) {
-    if (verbose) std::cout << "Executing b" << base << " -> b10 conversion on " << num << std::endl;
-
-    bool neg = (num[0] == '-');
-    int value = 0;
     
-    std::string convertedString = "";
-   
-    int i = 0;
-    if (neg) i++;
-    while (i < num.length()) {
-        value = value*base + interpretCharDigit(num[i]);
-        if (verbose) std::cout << "V: " << value << std::endl;
-        i++;
+    char interpretDigitChar(int digit) {
+        static const int ASCII_ALPHA_OFFSET = 55;
+        static const int ASCII_NUMERIC_OFFSET = 48;
+    
+        char characterized = '-';
+    
+        if (digit >= 0 && digit < 10)
+            characterized = digit + ASCII_NUMERIC_OFFSET;
+        else if (digit >= 10 && digit < 36)
+            characterized = digit + ASCII_ALPHA_OFFSET;
+        else
+            std::cout << "Err: can't find suitable alphanumeric for " << digit << ", setting to '-'" << std::endl;
+    
+        return characterized;
     }
-
-    convertedString = std::to_string(value);
-    if (neg) convertedString.insert(0, 1, '-');
-
-    return convertedString;
+    
+    std::string fromTen(const std::string& num, int base, bool verbose = false) {
+        if (verbose) std::cout << "Executing b10 -> b" << base << " conversion on " << num << std::endl;
+        
+        bool neg = (num[0] == '-');
+        int value = abs(stoi(num));
+    
+        std::string convertedString = "";
+        while (value > 0) {
+            convertedString.insert(0, 1, interpretDigitChar(value%base));
+            value /= base;
+            if (verbose) std::cout << "V: " << value << "\t\tR: " << convertedString << std::endl;
+        }
+    
+        if (neg) convertedString.insert(0, 1, '-');
+    
+        return convertedString;
+    }
+    
+    std::string toTen(const std::string& num, int base, bool verbose = false) {
+        if (verbose) std::cout << "Executing b" << base << " -> b10 conversion on " << num << std::endl;
+    
+        bool neg = (num[0] == '-');
+        int value = 0;
+        
+        std::string convertedString = "";
+       
+        int i = 0;
+        if (neg) i++;
+        while (i < num.length()) {
+            value = value*base + interpretCharDigit(num[i]);
+            if (verbose) std::cout << "V: " << value << std::endl;
+            i++;
+        }
+    
+        convertedString = std::to_string(value);
+        if (neg) convertedString.insert(0, 1, '-');
+    
+        return convertedString;
+    }
 }
     
 std::string convert(const std::string& num, int fromBase, int toBase, bool verbose) {
