@@ -17,7 +17,7 @@
 //  Takes string of number in base 10, returns string of num in given base
 // ------------------
 namespace {
-    static int interpretCharDigit(char digit) {
+    int interpretCharDigit(char digit) {
         static const int ASCII_ALPHA_OFFSET = 55;
         static const int ASCII_NUMERIC_OFFSET = 48;
     
@@ -111,7 +111,7 @@ std::string convert(const std::string& num, int fromBase, int toBase, bool verbo
                     break;
             }
             break;
-        }
+    }
 
     return convertedString;
 }
