@@ -34,48 +34,68 @@ char interpretDigitChar(int digit) {
     return characterized;
 }
 
+std::string fromTen(const std::string& num, int base, bool verbose = false) {
+    if (verbose) std::cout << "Executing b10 -> b" << base << " conversion on " << num << std::endl;
+    
+    bool neg = (num[0] == '-');
+    int value = abs(stoi(num));
+
+    std::string convertedString = "";
+    while (value > 0) {
+        convertedString.insert(0, 1, interpretDigitChar(value%base));
+        value /= base;
+        if (verbose) std::cout << "V: " << value << "\tR: " << convertedString << std::endl;
+    }
+
+    if (neg) convertedString.insert(0, 1, '-');
+
+    return convertedString;
+}
+
+std::string toTen(const std::string& num, int base, bool verbose = false) {
+    if (verbose) std::cout << "Executing b" << base << " -> b10 conversion on " << num << std::endl;
+
+    bool neg = (num[0] == '-');
+    int value = 0;
+    
+    std::string convertedString = "";
+   
+    int i = 0;
+    if (neg) i++;
+    while (i < num.length()) {
+        value = value*base + interpretCharDigit(num[i]);
+        if (verbose) std::cout << "V: " << value << std::endl;
+        i++;
+    }
+
+    convertedString = std::to_string(value);
+    if (neg) convertedString.insert(0, 1, '-');
+
+    return convertedString;
+}
+    
 std::string convert(const std::string& num, int fromBase, int toBase, bool verbose) {
     if (verbose) std::cout << "Converting " << num << " from b" << fromBase << " to b" << toBase << std::endl;
 
-    //handle sign
-    bool neg = (num[0] == '-');
-    
     //return string
     std::string convertedString;
 
-    int value;
     switch (fromBase) {
         case 10: //convert from base 10 to any base with known algorithm
-            convertedString = "";
-            value = std::stoi(num);
-            if (neg) value = abs(value);
-            while (value > 0) {
-                convertedString.insert(0, 1, (interpretDigitChar(value % toBase)));
-                value /= toBase;
-                if (verbose) std::cout << "V: " << value << "\tR: " << convertedString << std::endl;
-            }
+            convertedString = fromTen(num, toBase, verbose);
             break;
         default:
             switch (toBase) {
                 case 10: //convert to base 10 from any base with known algorithm
-                    value = 0;
-                    for (int i = neg; i < num.length(); i++) {//sloppy bool --> int conversion to handle possible sign index, @todo a better way of doing this
-                        value = value*fromBase + interpretCharDigit(num[i]);
-                        if (verbose) std::cout << "V: " << value << std::endl;
-                    }
-                    convertedString = std::to_string(value);
+                    convertedString = toTen(num, fromBase, verbose);
                     break;
                 default: //convert any base to any base with base 10 conversion as mediary
                     if (verbose) std::cout << "Unknown conversion, translating through base 10" << std::endl;
-                    convertedString = convert(convert(num, fromBase, 10, verbose), 10, toBase, verbose);
-                    if (neg) neg = false; //flip neg back if set, was handled in above calls @todo rethink signs completely
+                    convertedString = fromTen(toTen(num, fromBase, verbose), toBase, verbose);
                     break;
             }
             break;
         }
 
-    //reinsert sign to converted string if applicable
-    if (neg) convertedString.insert(0, 1, '-');
-    
     return convertedString;
 }
