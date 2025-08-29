@@ -28,7 +28,7 @@ namespace {
         else if (isupper(digit))
             integerized = digit - ASCII_ALPHA_OFFSET;
         else 
-            std::cout << "Err: can't interpret char as digit, setting '" << digit << "' to zero." << std::endl;
+            std::cerr << "Err: can't interpret char as digit, setting '" << digit << "' to zero." << std::endl;
     
         return integerized;
     }
@@ -44,7 +44,7 @@ namespace {
         else if (digit >= 10 && digit < 36)
             characterized = digit + ASCII_ALPHA_OFFSET;
         else
-            std::cout << "Err: can't find suitable alphanumeric for " << digit << ", setting to '-'" << std::endl;
+            std::cerr << "Err: can't find suitable alphanumeric for " << digit << ", setting to '-'" << std::endl;
     
         return characterized;
     }
