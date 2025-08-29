@@ -1,2 +1,5 @@
 #compiled binaries
 /bins
+
+#precompiled headers
+/*.gch
