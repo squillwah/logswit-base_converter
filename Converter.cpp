@@ -18,14 +18,14 @@
 // ------------------
 namespace {
     int interpretCharDigit(char digit) {
-        static const int ASCII_ALPHA_OFFSET = 55;
-        static const int ASCII_NUMERIC_OFFSET = 48;
+        static const int ASCII_ALPHA_OFFSET = 'A' - 10;
+        static const int ASCII_NUMERIC_OFFSET = '0';
     
         int integerized = 0;
         
-        if (digit > 47 && digit < 58)
+        if (isdigit(digit))
             integerized = digit - ASCII_NUMERIC_OFFSET;
-        else if (digit > 64 && digit < 91)
+        else if (isupper(digit))
             integerized = digit - ASCII_ALPHA_OFFSET;
         else 
             std::cout << "Err: can't interpret char as digit, setting '" << digit << "' to zero." << std::endl;
@@ -34,8 +34,8 @@ namespace {
     }
     
     char interpretDigitChar(int digit) {
-        static const int ASCII_ALPHA_OFFSET = 55;
-        static const int ASCII_NUMERIC_OFFSET = 48;
+        static const int ASCII_ALPHA_OFFSET = 'A' - 10;
+        static const int ASCII_NUMERIC_OFFSET = '0';
     
         char characterized = '-';
     
