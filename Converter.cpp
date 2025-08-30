@@ -93,6 +93,11 @@ namespace {
 std::string convert(const std::string& num, int fromBase, int toBase, bool verbose) {
     if (verbose) std::cout << "Converting " << num << " from b" << fromBase << " to b" << toBase << std::endl;
 
+    if (fromBase < 2 || toBase < 2) {
+        std::cerr << "Err: bases less than two are impossible, aborting" << std::endl;
+        return num;
+    }
+
     //return string
     std::string convertedString = num;
    
