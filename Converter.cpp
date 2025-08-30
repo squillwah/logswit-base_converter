@@ -94,24 +94,15 @@ std::string convert(const std::string& num, int fromBase, int toBase, bool verbo
     if (verbose) std::cout << "Converting " << num << " from b" << fromBase << " to b" << toBase << std::endl;
 
     //return string
-    std::string convertedString;
-
-    switch (fromBase) {
-        case 10: //convert from base 10 to any base with known algorithm
-            convertedString = fromTen(num, toBase, verbose);
-            break;
-        default:
-            switch (toBase) {
-                case 10: //convert to base 10 from any base with known algorithm
-                    convertedString = toTen(num, fromBase, verbose);
-                    break;
-                default: //convert any base to any base with base 10 conversion as mediary
-                    if (verbose) std::cout << "Unknown conversion, translating through base 10" << std::endl;
-                    convertedString = fromTen(toTen(num, fromBase, verbose), toBase, verbose);
-                    break;
-            }
-            break;
+    std::string convertedString = num;
+   
+    //convert to ten if in different base, convert from that if desired base isn't ten 
+    if (fromBase != toBase) {
+        if (fromBase != 10)
+            convertedString = toTen(convertedString, fromBase, verbose);
+        if (toBase != 10)
+            convertedString = fromTen(convertedString, toBase, verbose);
     }
-
+    
     return convertedString;
 }
