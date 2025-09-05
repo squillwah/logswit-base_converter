@@ -49,7 +49,7 @@ namespace {
         return characterized;
     }
     
-    std::string fromTen(const std::string& num, int base, bool verbose = false) {
+    std::string fromTenLeft(const std::string& num, int base, bool verbose = false) {
         if (verbose) std::cout << "Executing b10 -> b" << base << " conversion on " << num << std::endl;
         
         bool neg = (num[0] == '-');
@@ -67,7 +67,7 @@ namespace {
         return convertedString;
     }
     
-    std::string toTen(const std::string& num, int base, bool verbose = false) {
+    std::string toTenLeft(const std::string& num, int base, bool verbose = false) {
         if (verbose) std::cout << "Executing b" << base << " -> b10 conversion on " << num << std::endl;
     
         bool neg = (num[0] == '-');
@@ -104,9 +104,9 @@ std::string convert(const std::string& num, int fromBase, int toBase, bool verbo
     //convert to ten if in different base, convert from that if desired base isn't ten 
     if (fromBase != toBase) {
         if (fromBase != 10)
-            convertedString = toTen(convertedString, fromBase, verbose);
+            convertedString = toTenLeft(convertedString, fromBase, verbose);
         if (toBase != 10)
-            convertedString = fromTen(convertedString, toBase, verbose);
+            convertedString = fromTenLeft(convertedString, toBase, verbose);
     }
     
     return convertedString;
