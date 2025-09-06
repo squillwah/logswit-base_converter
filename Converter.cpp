@@ -2,6 +2,48 @@
 #include <string>
 #include <iostream>
 
+
+//struct BasedNum {
+//    int base;
+//    std::string left;
+//    std::string right;
+//
+//    BasedNum(int b, const std::string& l, const std::string& r = "");
+//    const BasedNum& operator=(const BasedNum& rhs);
+//    friend std::ostream& operator<<(std::ostream& output, const BasedNum& num);
+//};
+
+// BASEDNUM TYPE METHODS:
+// ------------------
+// BasedNum()
+//  Constructor, sets base integer and lhs/rhs strings
+// ------------------
+// operator=()
+//  Assignment operator
+// ------------------
+// operator<<()
+//  Output stream operator
+// ------------------
+BasedNum::BasedNum(int b, const std::string& l, const std::string& r) {
+    base = b;
+    left = l;
+    right = r;
+}
+const BasedNum& BasedNum::operator=(const BasedNum& rhs) {
+    if (this != &rhs) { 
+        base = rhs.base;
+        left = rhs.left;
+        right = rhs.right;
+    }
+    return *this;
+}
+std::ostream& operator<<(std::ostream& output, const BasedNum& num) {
+    output << num.left;
+    if (num.right.empty())
+        output << '.' << num.right;
+    return output;
+}
+
 // HELPER FUNCTIONS:
 // ------------------
 // interpretCharDigit(char digit)
@@ -16,6 +58,36 @@
 // fromTen(const string& num, int base)
 //  Takes string of number in base 10, returns string of num in given base
 // ------------------
+namespace {
+    int interpretCharDigit(char digit);
+    char interpretDigitChar(int digit);
+    std::string fromTenLHS(const std::string& num, int base, bool verbose);
+    std::string toTenLHS(const std::string& num, int base, bool verbose);
+}
+
+// BASE CONVERTER FUNCTION: 
+// -------------------------
+BasedNum convert(BasedNum num, int toBase, bool verbose) {
+    if (verbose) std::cout << "Converting " << num << " from b" << num.base << " to b" << toBase << std::endl;
+
+    if (num.base < 2 || toBase < 2) {
+        std::cerr << "Err: bases less than two are impossible, aborting" << std::endl;
+        return num;
+    }
+
+    //convert to ten if in different base, convert from that if desired base isn't ten 
+    if (num.base != toBase) {
+        if (num.base != 10)
+            num.left = toTenLHS(num.left, num.base, verbose);
+        if (toBase != 10)
+            num.left = fromTenLHS(num.left, toBase, verbose);
+    }
+    
+    return num;
+}
+
+// HELPER FUNCTION DEFINITIONS:
+// -----------------------------
 namespace {
     int interpretCharDigit(char digit) {
         static const int ASCII_ALPHA_OFFSET = 'A' - 10;
@@ -49,7 +121,7 @@ namespace {
         return characterized;
     }
     
-    std::string fromTenLeft(const std::string& num, int base, bool verbose = false) {
+    std::string fromTenLHS(const std::string& num, int base, bool verbose) {
         if (verbose) std::cout << "Executing b10 -> b" << base << " conversion on " << num << std::endl;
         
         bool neg = (num[0] == '-');
@@ -67,7 +139,7 @@ namespace {
         return convertedString;
     }
     
-    std::string toTenLeft(const std::string& num, int base, bool verbose = false) {
+    std::string toTenLHS(const std::string& num, int base, bool verbose) {
         if (verbose) std::cout << "Executing b" << base << " -> b10 conversion on " << num << std::endl;
     
         bool neg = (num[0] == '-');
@@ -88,26 +160,4 @@ namespace {
     
         return convertedString;
     }
-}
-    
-std::string convert(const std::string& num, int fromBase, int toBase, bool verbose) {
-    if (verbose) std::cout << "Converting " << num << " from b" << fromBase << " to b" << toBase << std::endl;
-
-    if (fromBase < 2 || toBase < 2) {
-        std::cerr << "Err: bases less than two are impossible, aborting" << std::endl;
-        return num;
-    }
-
-    //return string
-    std::string convertedString = num;
-   
-    //convert to ten if in different base, convert from that if desired base isn't ten 
-    if (fromBase != toBase) {
-        if (fromBase != 10)
-            convertedString = toTenLeft(convertedString, fromBase, verbose);
-        if (toBase != 10)
-            convertedString = fromTenLeft(convertedString, toBase, verbose);
-    }
-    
-    return convertedString;
 }
