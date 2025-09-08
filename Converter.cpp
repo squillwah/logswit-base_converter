@@ -1,93 +1,82 @@
 #include "Converter.h"
 #include <string>
 #include <iostream>
+#include <cmath>
 
+//global flag for logging
+bool LOGGING = false;
 
-//struct BasedNum {
-//    int base;
-//    std::string left;
-//    std::string right;
-//
-//    BasedNum(int b, const std::string& l, const std::string& r = "");
-//    const BasedNum& operator=(const BasedNum& rhs);
-//    friend std::ostream& operator<<(std::ostream& output, const BasedNum& num);
-//};
-
-// BASEDNUM TYPE METHODS:
-// ------------------
-// BasedNum()
-//  Constructor, sets base integer and lhs/rhs strings
-// ------------------
-// operator=()
-//  Assignment operator
-// ------------------
-// operator<<()
-//  Output stream operator
-// ------------------
-BasedNum::BasedNum(int b, const std::string& l, const std::string& r) {
-    base = b;
-    left = l;
-    right = r;
-}
-const BasedNum& BasedNum::operator=(const BasedNum& rhs) {
-    if (this != &rhs) { 
-        base = rhs.base;
-        left = rhs.left;
-        right = rhs.right;
-    }
-    return *this;
-}
-std::ostream& operator<<(std::ostream& output, const BasedNum& num) {
+//output stream overload for based number struct
+std::ostream& operator<<(std::ostream& output, const Based& num) {
+    if (num.sign) output << '-';
     output << num.left;
-    if (num.right.empty())
-        output << '.' << num.right;
+    if (!num.right.empty()) output << '.' << num.right;
     return output;
 }
 
-// HELPER FUNCTIONS:
-// ------------------
-// interpretCharDigit(char digit)
-//  Takes character digit, returns integer representation
-// ------------------
-// interpretDigitChar(int digit)
-//  Takes integer digit, returns char representation (0-Z)
-// ------------------
-// toTen(const string& num, int base)
-//  Takes string of number in a given base, returns string of num in base 10
-// ------------------
-// fromTen(const string& num, int base)
-//  Takes string of number in base 10, returns string of num in given base
-// ------------------
+//isolated helper functions
 namespace {
     int interpretCharDigit(char digit);
     char interpretDigitChar(int digit);
-    std::string fromTenLHS(const std::string& num, int base, bool verbose);
-    std::string toTenLHS(const std::string& num, int base, bool verbose);
+    
+    void toTenLHS(std::string& num, int fromBase);
+    void fromTenLHS(std::string& num, int toBase);
+    void toTenRHS(std::string& num, int fromBase);
+    void fromTenRHS(std::string& num, int toBase, int accuracy);
+
 }
 
-// BASE CONVERTER FUNCTION: 
-// -------------------------
-BasedNum convert(BasedNum num, int toBase, bool verbose) {
-    if (verbose) std::cout << "Converting " << num << " from b" << num.base << " to b" << toBase << std::endl;
-
+Based convert(Based num, int toBase, bool logging_enabled) {
+    LOGGING = logging_enabled;
+    const bool computeLeft = !num.left.empty();
+    const bool computeRight = !num.right.empty();
+    
+    //null conversion cases
+    if (!computeLeft && !computeRight) {
+        std::cerr << "Err: empty number, aborting" << std::endl;
+        return num;
+    }
     if (num.base < 2 || toBase < 2) {
         std::cerr << "Err: bases less than two are impossible, aborting" << std::endl;
         return num;
     }
-
-    //convert to ten if in different base, convert from that if desired base isn't ten 
-    if (num.base != toBase) {
-        if (num.base != 10)
-            num.left = toTenLHS(num.left, num.base, verbose);
-        if (toBase != 10)
-            num.left = fromTenLHS(num.left, toBase, verbose);
+    if (num.base == toBase) {
+        if (LOGGING) std::cout << "Bases equal, no conversion needed" << std::endl;
+        return num;
     }
+
+    if (LOGGING) std::cout << "Converting " << num << " from b" << num.base << " to b" << toBase << std::endl;
+    
+    //calculate required decimal accuracy if decimals are present 
+    int decAccuracy = 0; 
+    if (computeRight) {
+        decAccuracy = num.right.size()*std::log(num.base)/std::log(toBase);
+        if (LOGGING) std::cout << "Minimum decimal accuracy = " << decAccuracy << std::endl;
+    }
+    
+    //convert to ten if in different base, convert from that if desired base isn't ten 
+    if (num.base != 10) {
+        if (LOGGING) std::cout << "Initiating b" << num.base << " -> b10 conversion on " << num << std::endl;
+        if (computeLeft) toTenLHS(num.left, num.base);
+        if (computeRight) toTenRHS(num.right, num.base);
+        num.base = 10;
+    }
+    if (toBase != 10) {
+        if (LOGGING) std::cout << "Initiating b10 -> b" << toBase << " conversion on " << num << std::endl;
+        if (computeLeft) fromTenLHS(num.left, toBase);
+        if (computeRight) fromTenRHS(num.right, toBase, decAccuracy);
+        num.base = toBase;
+    }
+
+    if (computeRight && num.right.size() > decAccuracy) {
+        num = num; //round right hand side!
+    }
+    
     
     return num;
 }
 
-// HELPER FUNCTION DEFINITIONS:
-// -----------------------------
+//helper function definitions
 namespace {
     int interpretCharDigit(char digit) {
         static const int ASCII_ALPHA_OFFSET = 'A' - 10;
@@ -121,43 +110,40 @@ namespace {
         return characterized;
     }
     
-    std::string fromTenLHS(const std::string& num, int base, bool verbose) {
-        if (verbose) std::cout << "Executing b10 -> b" << base << " conversion on " << num << std::endl;
-        
-        bool neg = (num[0] == '-');
-        int value = abs(stoi(num));
-    
-        std::string convertedString = "";
-        while (value > 0) {
-            convertedString.insert(0, 1, interpretDigitChar(value%base));
-            value /= base;
-            if (verbose) std::cout << "V: " << value << "\t\tR: " << convertedString << std::endl;
-        }
-    
-        if (neg) convertedString.insert(0, 1, '-');
-    
-        return convertedString;
-    }
-    
-    std::string toTenLHS(const std::string& num, int base, bool verbose) {
-        if (verbose) std::cout << "Executing b" << base << " -> b10 conversion on " << num << std::endl;
-    
-        bool neg = (num[0] == '-');
+    void toTenLHS(std::string& num, int fromBase) {
+        if (LOGGING) std::cout << "Executing left-handed bX->b10 conversion algorithm" << std::endl;
         int value = 0;
-        
-        std::string convertedString = "";
-       
-        int i = 0;
-        if (neg) i++;
-        while (i < num.length()) {
-            value = value*base + interpretCharDigit(num[i]);
-            if (verbose) std::cout << "V: " << value << std::endl;
-            i++;
+        for (int i = 0; i < num.length(); i++) {
+            value = value*fromBase + interpretCharDigit(num[i]);
+            if (LOGGING) std::cout << "V: " << value << std::endl;
         }
-    
-        convertedString = std::to_string(value);
-        if (neg) convertedString.insert(0, 1, '-');
-    
-        return convertedString;
+        num = std::to_string(value);
     }
+
+    void toTenRHS(std::string& num, int fromBase) {
+        if (LOGGING) std::cout << "Executing right-handed bX->b10 conversion algorithm" << std::endl;
+        double value = 0.0;
+        for (int i = num.length()-1; i > -1; i--) {
+            value = (value+num[i]) / fromBase;
+            if (LOGGING) std::cout << "V: " << value << std::endl;
+        }
+        num = std::to_string(value);
+    }
+
+    void fromTenLHS(std::string& num, int toBase) {
+        if (LOGGING) std::cout << "Executing left-handed b10->bX conversion algorithm" << std::endl;
+        int value = std::stoi(num);
+        num = "";
+        while (value > 0) {
+            num.insert(0, 1, interpretDigitChar(value%toBase));
+            value /= toBase;
+            if (LOGGING) std::cout << "V: " << value << "\t\tR: " << num << std::endl;
+        }
+    }
+ 
+    void fromTenRHS(std::string& num, int toBase, int accuracy) {
+        if (LOGGING) std::cout << "Executing right-handed b10->bX conversion algorithm" << std::endl;
+        int i = 2;
+    }
+
 }

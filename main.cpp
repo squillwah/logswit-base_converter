@@ -2,41 +2,61 @@
 #include <string>
 #include <iostream>
 
-//struct BasedNum {
-//    int base;
-//    std::string left;
-//    std::string right;
-//
-//    BasedNum(int b, const std::string& l, const std::string& r = "");
-//    const BasedNum& operator=(const BasedNum& rhs);
-//    friend std::ostream& operator<<(std::ostream& output, const BasedNum& num);
-//};
+int parseInput(int argc, char*argv[], Based& num, int& toBase, bool& logging_flag);
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        std::cout << "\nCommand arguments invalid\nfollow 'convert -FLAGS [number] [base] [base2]'\n" << std::endl;
-        return 1;
+    Based bNum;
+    int toBase;
+    bool logging_flag;
+
+    int inputErr = parseInput(argc, argv, bNum, toBase, logging_flag);
+    switch (inputErr) {
+        case 0:
+            break;
+        case 1:
+            std::cerr << "\nCommand arguments invalid\nfollow 'convert -FLAGS [number] [base] [base2]'\n" << std::endl;
+            return inputErr;
+        default:
+            std::cerr << "\nInput error " << inputErr << ", aborting.\n" << std::endl;
+            return inputErr;
     }
-
-    //command flags
-    bool verbose = false;
-
-    int argument = 1;
-    if (std::string(argv[1]) == "-v") {
-        verbose = true;
-        argument++;
-    }
-
-    std::string number = argv[argument];
-    int inBase = atoi(argv[argument+1]);
-    int toBase = atoi(argv[argument+2]);
-
-    BasedNum bnum(inBase, number);
-
-    BasedNum converted = convert(bnum, toBase, verbose);
+    
+    Based converted = convert(bNum, toBase, logging_flag);
 
     std::cout << '\n' << converted << '\n' << std::endl;
     
+    return 0;
+}
+
+//@todo more robust checking (any at all)
+int parseInput(int argc, char*argv[], Based& num, int& toBase, bool& logging_flag) {
+    if (argc < 4 || argc > 5) 
+        return 1;
+
+    int argument = 1;
+    if (std::string(argv[argument]) == "-v") {
+        logging_flag = true;
+        argument++;
+    }
+
+    std::string inputNumber = argv[argument];
+    std::string inputFromBase = argv[argument+1];
+    std::string inputToBase = argv[argument+2];
+
+    if (inputNumber[0] == '-') {
+        num.sign = true;
+        inputNumber.erase(0, 1);
+    }
+
+    num.left = inputNumber;
+    num.right = "";
+    num.base = std::stoi(inputFromBase);
+    toBase = std::stoi(inputToBase);
+
+    std::cout << "num: " << num << std::endl;
+    std::cout << "base: " << num.base << std::endl;
+    std::cout << "tobase: " << toBase << std::endl;
+
     return 0;
 }
 

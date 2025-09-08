@@ -4,16 +4,17 @@
 #include <string>
 #include <iostream>
 
-struct BasedNum {
+struct Based {
     int base;
+    bool sign;
     std::string left;
     std::string right;
 
-    BasedNum(int b, const std::string& l, const std::string& r = "");
-    const BasedNum& operator=(const BasedNum& rhs);
-    friend std::ostream& operator<<(std::ostream& output, const BasedNum& num);
+    //const BasedNum& operator=(const BasedNum& rhs);
+    //const BasedNum& operator=(const std::string& rhs);
+    friend std::ostream& operator<<(std::ostream& output, const Based& num);
 };
 
-BasedNum convert(BasedNum num, int toBase, bool verbose = false);
+Based convert(Based num, int toBase, bool logging_enabled = false);
 
 #endif
