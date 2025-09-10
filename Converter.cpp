@@ -3,10 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-//global flag for logging
-bool LOGGING = false;
-
-//output stream overload for based number struct
+//ostream overload for based struct
 std::ostream& operator<<(std::ostream& output, const Based& num) {
     if (num.sign) output << '-';
     output << num.left;
@@ -14,8 +11,11 @@ std::ostream& operator<<(std::ostream& output, const Based& num) {
     return output;
 }
 
-//isolated helper functions
+//helper functions
 namespace {
+    //flag for logging
+    bool LOGGING = false;
+
     int interpretCharDigit(char digit);
     char interpretDigitChar(int digit);
     
@@ -23,7 +23,6 @@ namespace {
     void fromTenLHS(std::string& num, int toBase);
     void toTenRHS(std::string& num, int fromBase);
     void fromTenRHS(std::string& num, int toBase, int accuracy);
-
 }
 
 Based convert(Based num, int toBase, bool logging_enabled) {
@@ -31,7 +30,7 @@ Based convert(Based num, int toBase, bool logging_enabled) {
     const bool computeLeft = !num.left.empty();
     const bool computeRight = !num.right.empty();
     
-    //null conversion cases
+    //null conversion states
     if (!computeLeft && !computeRight) {
         std::cerr << "Err: empty number, aborting" << std::endl;
         return num;
@@ -45,24 +44,22 @@ Based convert(Based num, int toBase, bool logging_enabled) {
         return num;
     }
 
-    if (LOGGING) std::cout << "Converting " << num << " from b" << num.base << " to b" << toBase << std::endl;
-    
+    //@todo check for related bases
+
     //calculate required decimal accuracy if decimals are present 
     int decAccuracy = 0; 
     if (computeRight) {
-        decAccuracy = num.right.size()*std::log(num.base)/std::log(toBase);
+        decAccuracy = ceil(num.right.size()*std::log(num.base)/std::log(toBase));
         if (LOGGING) std::cout << "Minimum decimal accuracy = " << decAccuracy << std::endl;
     }
     
     //convert to ten if in different base, convert from that if desired base isn't ten 
     if (num.base != 10) {
-        if (LOGGING) std::cout << "Initiating b" << num.base << " -> b10 conversion on " << num << std::endl;
         if (computeLeft) toTenLHS(num.left, num.base);
         if (computeRight) toTenRHS(num.right, num.base);
         num.base = 10;
     }
     if (toBase != 10) {
-        if (LOGGING) std::cout << "Initiating b10 -> b" << toBase << " conversion on " << num << std::endl;
         if (computeLeft) fromTenLHS(num.left, toBase);
         if (computeRight) fromTenRHS(num.right, toBase, decAccuracy);
         num.base = toBase;
@@ -111,7 +108,7 @@ namespace {
     }
     
     void toTenLHS(std::string& num, int fromBase) {
-        if (LOGGING) std::cout << "Executing left-handed bX->b10 conversion algorithm" << std::endl;
+        if (LOGGING) std::cout << "Running left-handed b" << fromBase << "->b10 on " << num << std::endl;
         int value = 0;
         for (int i = 0; i < num.length(); i++) {
             value = value*fromBase + interpretCharDigit(num[i]);
@@ -121,17 +118,17 @@ namespace {
     }
 
     void toTenRHS(std::string& num, int fromBase) {
-        if (LOGGING) std::cout << "Executing right-handed bX->b10 conversion algorithm" << std::endl;
+        if (LOGGING) std::cout << "Running right-handed b" << fromBase << "->b10 on ." << num << std::endl;
         double value = 0.0;
         for (int i = num.length()-1; i > -1; i--) {
-            value = (value+num[i]) / fromBase;
+            value = (value+interpretCharDigit(num[i])) / fromBase;
             if (LOGGING) std::cout << "V: " << value << std::endl;
         }
-        num = std::to_string(value);
+        num = std::to_string(value).substr(2);
     }
 
     void fromTenLHS(std::string& num, int toBase) {
-        if (LOGGING) std::cout << "Executing left-handed b10->bX conversion algorithm" << std::endl;
+        if (LOGGING) std::cout << "Running left-handed b10->b" << toBase << " on " << num << std::endl;
         int value = std::stoi(num);
         num = "";
         while (value > 0) {
@@ -142,8 +139,37 @@ namespace {
     }
  
     void fromTenRHS(std::string& num, int toBase, int accuracy) {
-        if (LOGGING) std::cout << "Executing right-handed b10->bX conversion algorithm" << std::endl;
-        int i = 2;
+        if (LOGGING) std::cout << "Running right-handed b10->b" <<  toBase << " on ." << num << std::endl;
+        double value = stod("."+num);
+        num = "";
+
+        //multiply value by toBase accuracy+1 times
+        //append integer portion of value to num string
+        //break if hit zero
+        
+        for (int i = 0; i < accuracy+1; i++) {
+            value *= toBase;
+            int whole = static_cast<int>(value);
+            value -= whole;
+            num += interpretDigitChar(whole);
+            if (LOGGING) std::cout << "V: " << whole << " + " << value << "\tN: ." << num << std::endl;
+            if (value == 0) break;
+        }
+
+        //if (num.size() > accuracy) { 
+        //    int half = toBase/2;
+        //    
+        //    
+        //    static const int EPSILON = 5;
+        //    for (int i = 0; i < EPSILON; i++) 
+        //    //check if last char of num above, below, or equal to half of toBase
+        //    //do a while loop n times to check if repeating
+        //    
+        //    //round at accuracy 
+        //}
+        
+
+        
     }
 
 }

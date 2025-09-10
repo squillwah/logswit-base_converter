@@ -20,6 +20,10 @@ int main(int argc, char* argv[]) {
             std::cerr << "\nInput error " << inputErr << ", aborting.\n" << std::endl;
             return inputErr;
     }
+
+    std::cout << "-------------------------------" << std::endl;
+    std::cout << "logs:" << logging_flag << " | num:" << bNum << " | from:" << bNum.base << " | to:" << toBase << std::endl;
+    std::cout << "-------------------------------" << std::endl;
     
     Based converted = convert(bNum, toBase, logging_flag);
 
@@ -48,14 +52,17 @@ int parseInput(int argc, char*argv[], Based& num, int& toBase, bool& logging_fla
         inputNumber.erase(0, 1);
     }
 
-    num.left = inputNumber;
-    num.right = "";
+    int pointIndex = inputNumber.find('.');
+    if (pointIndex != -1) {
+        num.left = inputNumber.substr(0, pointIndex);
+        num.right = inputNumber.substr(pointIndex+1);
+    } else {
+        num.left = inputNumber;
+        num.right = "";
+    }
+    
     num.base = std::stoi(inputFromBase);
     toBase = std::stoi(inputToBase);
-
-    std::cout << "num: " << num << std::endl;
-    std::cout << "base: " << num.base << std::endl;
-    std::cout << "tobase: " << toBase << std::endl;
 
     return 0;
 }
